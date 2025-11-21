@@ -1,6 +1,5 @@
 ---
 import DarkMode from './DarkMode.astro';
-import InstallPrompt from './InstallPrompt.astro';
 
 const links = [
 	{ href: '/', label: 'Home' },
@@ -19,7 +18,6 @@ const links = [
 				<a class="transition hover:text-brand-secondary" href={link.href}>{link.label}</a>
 			))}
 			<DarkMode />
-			<InstallPrompt label="Install" className="border-brand-primary/40 bg-brand-primary/10 text-brand-primary" />
 		</div>
 	</nav>
 </header>
