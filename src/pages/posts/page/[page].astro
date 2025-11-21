@@ -1,0 +1,55 @@
+---
+import Layout from '../../../components/Layout.astro';
+import SEO from '../../../components/SEO.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+type BlogEntry = CollectionEntry<'blog'>;
+const { page } = Astro.params;
+const currentPage = Number(page ?? '1');
+const perPage = 5;
+const posts = (await getCollection('blog')) as BlogEntry[];
+posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const totalPages = Math.max(1, Math.ceil(posts.length / perPage));
+
+if (!Number.isFinite(currentPage) || currentPage < 1 || currentPage > totalPages) {
+	throw new Response(null, { status: 404 });
+}
+
+const start = (currentPage - 1) * perPage;
+const paginated = posts.slice(start, start + perPage);
+---
+<Layout title={`Posts - Page ${currentPage}`} description="Paginated archive of every Astro PWA article.">
+	<SEO
+		title={`Posts - Page ${currentPage}`}
+		description="Paginated archive of every Astro PWA article."
+		image="/pwa-512x512.png"
+		url={`https://astro-pwa.example.com/posts/page/${currentPage}/`}
+	/>
+	<h1 class="text-3xl font-bold text-slate-900 dark:text-white">Posts – Page {currentPage}</h1>
+	<ul class="mt-6 space-y-4">
+		{paginated.map((post) => (
+			<li class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-card dark:border-slate-700 dark:bg-slate-900/70">
+				<p class="text-xs uppercase tracking-wide text-brand-secondary">{post.data.category}</p>
+				<a class="mt-2 block text-2xl font-semibold text-slate-900 dark:text-white" href={`/posts/${post.slug}/`}>
+					{post.data.title}
+				</a>
+				<p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{post.data.description}</p>
+				<div class="mt-4 text-sm text-slate-500 dark:text-slate-400">{post.data.date.toLocaleDateString()}</div>
+			</li>
+		))}
+	</ul>
+	<nav class="mt-8 flex items-center justify-between text-sm font-semibold text-brand-secondary">
+		{currentPage > 1 ? (
+			<a href={`/posts/page/${currentPage - 1}/`}>&larr; Previous</a>
+		) : (
+			<span class="text-slate-400">Start</span>
+		)}
+		<span class="text-slate-500 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
+		{currentPage < totalPages ? (
+			<a href={`/posts/page/${currentPage + 1}/`}>Next &rarr;</a>
+		) : (
+			<span class="text-slate-400">End</span>
+		)}
+	</nav>
+</Layout>

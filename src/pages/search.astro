@@ -1,0 +1,57 @@
+---
+import Layout from '../components/Layout.astro';
+import SEO from '../components/SEO.astro';
+---
+<Layout title="Search - Astro PWA" description="Offline search powered by a static JSON index.">
+	<SEO
+		title="Search"
+		description="Offline search powered by a static JSON index."
+		image="/pwa-512x512.png"
+		url="https://astro-pwa.example.com/search/"
+	/>
+	<section class="rounded-2xl border border-slate-200 bg-white/80 p-8 shadow-card dark:border-slate-700 dark:bg-slate-900/70">
+		<h1 class="text-3xl font-bold text-slate-900 dark:text-white">Search</h1>
+		<p class="text-sm text-slate-500 dark:text-slate-300">Type anything—results still work when offline.</p>
+		<input
+			data-search-global
+			type="search"
+			placeholder="Find posts, descriptions, or keywords"
+			class="mt-6 w-full rounded-xl border border-slate-300 bg-white/90 px-4 py-3 text-lg text-slate-900 shadow-sm focus:border-brand-secondary focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+		/>
+		<ul data-search-global-results class="mt-6 space-y-4 text-slate-900 dark:text-white"></ul>
+	</section>
+</Layout>
+<script is:inline>
+	const input = document.querySelector('[data-search-global]');
+	const results = document.querySelector('[data-search-global-results]');
+	let index = [];
+	const template = (items) => {
+		return items
+			.map(
+				(item) => `
+			<li class="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+				<a class="text-xl font-semibold text-brand-secondary" href="/posts/${item.slug}/">${item.title}</a>
+				<p class="text-sm text-slate-600 dark:text-slate-300">${item.description}</p>
+			</li>`
+			)
+			.join('');
+	};
+
+	const loadIndex = async () => {
+		if (index.length) return index;
+		const response = await fetch('/search.json');
+		index = await response.json();
+		return index;
+	};
+
+	input?.addEventListener('input', async (event) => {
+		const query = event.target.value.toLowerCase();
+		const data = await loadIndex();
+		const filtered = data.filter((item) =>
+			item.title.toLowerCase().includes(query) ||
+			item.description.toLowerCase().includes(query) ||
+			item.content.toLowerCase().includes(query)
+		);
+		results && (results.innerHTML = template(filtered));
+	});
+</script>

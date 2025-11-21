@@ -1,0 +1,33 @@
+<button
+	type="button"
+	class="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:border-brand-secondary hover:text-brand-secondary dark:border-slate-600 dark:text-slate-200"
+	data-dark-toggle
+	aria-label="Toggle dark mode"
+>
+	Toggle
+</button>
+<script is:inline>
+	const root = document.documentElement;
+	const button = document.currentScript?.previousElementSibling;
+	const THEME_KEY = 'astro-pwa-theme';
+
+	const setTheme = (theme) => {
+		const isDark = theme === 'dark';
+		root.classList.toggle('dark', isDark);
+		root.style.colorScheme = isDark ? 'dark' : 'light';
+		localStorage.setItem(THEME_KEY, theme);
+		button?.setAttribute('aria-pressed', String(isDark));
+	};
+
+	const savedTheme = localStorage.getItem(THEME_KEY);
+	if (savedTheme) {
+		setTheme(savedTheme);
+	} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+		setTheme('dark');
+	}
+
+	button?.addEventListener('click', () => {
+		const nextTheme = root.classList.contains('dark') ? 'light' : 'dark';
+		setTheme(nextTheme);
+	});
+</script>

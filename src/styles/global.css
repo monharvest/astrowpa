@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	color-scheme: light dark;
+}
+
+.dark body,
+body {
+	font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+	background-color: #f8fafc;
+	color: #0f172a;
+}
+
+.dark body {
+	background-color: #0b1120;
+	color: #f8fafc;
+}
+
+a {
+	text-decoration: none;
+}

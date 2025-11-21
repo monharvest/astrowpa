@@ -1,0 +1,35 @@
+---
+import Layout from '../components/Layout.astro';
+import SEO from '../components/SEO.astro';
+import Search from '../components/Search.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+type BlogEntry = CollectionEntry<'blog'>;
+const posts = (await getCollection('blog')) as BlogEntry[];
+posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<Layout title="All Posts - Astro PWA" description="Browse every offline-ready article in the Astro PWA starter.">
+	<SEO
+		title="Blog Posts"
+		description="Browse every offline-ready article in the Astro PWA starter."
+		image="/pwa-512x512.png"
+		url="https://astro-pwa.example.com/posts/"
+	/>
+	<Search posts={posts} title="Search the archive" />
+	<ul class="mt-6 space-y-4">
+		{posts.map((post) => (
+			<li class="rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-card dark:border-slate-700 dark:bg-slate-900/70">
+				<p class="text-xs font-semibold uppercase tracking-wide text-brand-secondary">{post.data.category}</p>
+				<a class="mt-2 block text-2xl font-semibold text-slate-900 dark:text-white" href={`/posts/${post.slug}/`}>
+					{post.data.title}
+				</a>
+				<p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{post.data.description}</p>
+				<div class="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+					<span>{post.data.date.toLocaleDateString()}</span>
+					<a class="font-semibold text-brand-secondary" href={`/posts/${post.slug}/`}>Read</a>
+				</div>
+			</li>
+		))}
+	</ul>
+</Layout>

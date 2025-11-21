@@ -1,16 +1,75 @@
 ---
+import Layout from '../components/Layout.astro';
+import SEO from '../components/SEO.astro';
+import InstallPrompt from '../components/InstallPrompt.astro';
+import PlatformCTA from '../components/PlatformCTA.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
+type BlogEntry = CollectionEntry<'blog'>;
+const posts = (await getCollection('blog')) as BlogEntry[];
+posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const latest = posts.slice(0, 5);
+const categories: string[] = Array.from(new Set(posts.map((post) => post.data.category)));
+
+const slugify = (value: string) => value.toLowerCase().replace(/\s+/g, '-');
 ---
-
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Home - Astro PWA Blog" description="Offline-ready Astro blog with Tailwind UI, search, categories, and PWA goodness.">
+	<SEO
+		title="Astro PWA Offline Blog"
+		description="Offline-ready Astro blog with Tailwind UI, search, and SEO-friendly routing."
+		image="/pwa-512x512.png"
+		url="https://astro-pwa.example.com"
+	/>
+	<section class="rounded-3xl bg-gradient-to-r from-brand-primary via-brand-secondary to-indigo-600 p-10 text-white shadow-card">
+		<p class="mb-4 text-sm uppercase tracking-[0.3em] text-white/80">Offline-first</p>
+		<h1 class="text-4xl font-bold leading-tight sm:text-5xl">Offline-Ready Astro Blog</h1>
+		<p class="mt-4 max-w-2xl text-lg text-white/80">
+			Fast. Offline. Beautiful. This demo ships with full-site caching, dynamic posts, search, pagination, and Cloudflare deployment support.
+		</p>
+		<PlatformCTA className="mt-8" />
+	</section>
+	<section class="grid gap-6 md:grid-cols-2">
+		{latest.map((post) => (
+			<article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-card transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900/70">
+				<p class="text-xs font-semibold uppercase tracking-wide text-brand-secondary">{post.data.category}</p>
+				<h2 class="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">
+					<a href={`/posts/${post.slug}/`}>{post.data.title}</a>
+				</h2>
+				<p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{post.data.description}</p>
+				<div class="mt-6 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+					<span>{post.data.date.toLocaleDateString()}</span>
+					<a class="font-semibold text-brand-secondary" href={`/posts/${post.slug}/`}>Read more →</a>
+				</div>
+			</article>
+		))}
+	</section>
+	<section class="rounded-2xl border border-dashed border-slate-300 p-6 dark:border-slate-600">
+		<h2 class="text-2xl font-semibold">Categories</h2>
+		<p class="text-sm text-slate-500 dark:text-slate-300">Automatically generated from Markdown frontmatter.</p>
+		<div class="mt-4 flex flex-wrap gap-3">
+			{categories.map((category) => (
+				<a
+					class="rounded-full border border-slate-200 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:border-brand-secondary hover:text-brand-secondary dark:border-slate-600 dark:text-slate-200"
+					href={`/categories/${slugify(category)}/`}
+				>
+					{category}
+				</a>
+			))}
+		</div>
+	</section>
+	<section class="grid gap-6 md:grid-cols-2">
+		<article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-card dark:border-slate-700 dark:bg-slate-900/70">
+			<h3 class="text-xl font-semibold text-slate-900 dark:text-white">Full Offline Support</h3>
+			<p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+				The `@vite-pwa/astro` integration pre-caches every route, asset, and generated search index so the site keeps working on airplanes.
+			</p>
+		</article>
+		<article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-card dark:border-slate-700 dark:bg-slate-900/70">
+			<h3 class="text-xl font-semibold text-slate-900 dark:text-white">Cloudflare ready</h3>
+			<p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+				Server output is configured for the Cloudflare adapter, complete with Wrangler config and offline search.
+			</p>
+		</article>
+	</section>
+</Layout>

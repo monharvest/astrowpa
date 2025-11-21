@@ -1,0 +1,30 @@
+---
+import Header from './Header.astro';
+import '../styles/global.css';
+
+const {
+	title = 'Astro PWA',
+	description = 'Offline-ready Astro Progressive Web App'
+} = Astro.props;
+---
+<html lang="en" class="bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/pwa-192x192.png" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<slot name="head" />
+	</head>
+	<body class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+		<Header />
+		<main class="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
+			<slot />
+		</main>
+		<footer class="w-full bg-white/70 py-6 text-center text-sm text-slate-600 shadow-inner dark:bg-gray-800/70 dark:text-slate-300">
+			<p>Built with Astro, Tailwind CSS, and full offline caching.</p>
+		</footer>
+	</body>
+</html>
