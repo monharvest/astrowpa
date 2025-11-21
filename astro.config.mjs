@@ -18,14 +18,17 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json,xml}'],
+        globDirectory: 'dist',
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackAllowlist: [/^\/posts\//, /^\/categories\//],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.destination === 'document',
+            urlPattern: ({ request, url }) => {
+              return request.destination === 'document' || url.pathname.endsWith('/');
+            },
             handler: 'NetworkFirst',
             options: {
               cacheName: 'pages-cache',
@@ -33,7 +36,10 @@ export default defineConfig({
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30
               },
-              networkTimeoutSeconds: 3
+              networkTimeoutSeconds: 3,
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
             }
           },
           {
