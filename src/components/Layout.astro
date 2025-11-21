@@ -16,6 +16,15 @@ const {
 		<link rel="icon" href="/favicon.ico" />
 		<link rel="apple-touch-icon" href="/pwa-192x192.png" />
 		<link rel="manifest" href="/manifest.webmanifest" />
+		<script is:inline>
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', () => {
+					navigator.serviceWorker.register('/sw.js', { scope: '/' })
+						.then(reg => console.log('SW registered:', reg.scope))
+						.catch(err => console.error('SW registration failed:', err));
+				});
+			}
+		</script>
 		<slot name="head" />
 	</head>
 	<body class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">

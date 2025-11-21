@@ -11,13 +11,10 @@ export default defineConfig({
     sitemap(),
     pwa({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
       devOptions: {
         enabled: true,
         suppressWarnings: true
-      },
-      strategies: 'generateSW',
-      injectManifest: {
-        globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json,xml}']
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json,xml}'],
