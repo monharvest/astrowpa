@@ -4,6 +4,14 @@ import SEO from '../../components/SEO.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	const categories = [...new Set(posts.map(post => post.data.category))];
+	return categories.map(cat => ({
+		params: { category: cat.toLowerCase().replace(/\s+/g, '-') }
+	}));
+}
+
 const { category } = Astro.params;
 const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, '-');
 

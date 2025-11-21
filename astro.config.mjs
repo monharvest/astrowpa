@@ -1,18 +1,11 @@
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import pwa from '@vite-pwa/astro';
 
 export default defineConfig({
   site: 'https://astro-pwa.example.com',
-  output: 'server',
-  adapter: cloudflare(),
-  session: {
-    name: 'astro-pwa-session',
-    driver: 'cookie',
-    secret: process.env.SESSION_SECRET ?? 'dev-secret'
-  },
+  output: 'static',
   integrations: [
     tailwind(),
     sitemap(),
@@ -25,13 +18,18 @@ export default defineConfig({
       strategies: 'generateSW',
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.mode === 'navigate',
-            handler: 'NetworkFirst',
+            urlPattern: ({ request }) => request.destination === 'document',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'pages-cache',
-              expiration: { maxEntries: 200 }
+              expiration: { 
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              }
             }
           },
           {
@@ -42,6 +40,17 @@ export default defineConfig({
               expiration: {
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 365
+              }
+            }
+          },
+          {
+            urlPattern: /.*\.(?:js|css)/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'static-resources',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30
               }
             }
           }

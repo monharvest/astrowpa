@@ -4,6 +4,15 @@ import SEO from '../../../components/SEO.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	const perPage = 5;
+	const totalPages = Math.max(1, Math.ceil(posts.length / perPage));
+	return Array.from({ length: totalPages }, (_, i) => ({
+		params: { page: String(i + 1) }
+	}));
+}
+
 type BlogEntry = CollectionEntry<'blog'>;
 const { page } = Astro.params;
 const currentPage = Number(page ?? '1');

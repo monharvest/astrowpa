@@ -4,6 +4,13 @@ import SEO from '../../components/SEO.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return posts.map(post => ({
+		params: { slug: post.slug }
+	}));
+}
+
 const { slug } = Astro.params;
 type BlogEntry = CollectionEntry<'blog'>;
 const posts = (await getCollection('blog')) as BlogEntry[];
