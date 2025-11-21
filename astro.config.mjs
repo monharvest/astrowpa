@@ -4,7 +4,7 @@ import tailwind from '@astrojs/tailwind';
 import pwa from '@vite-pwa/astro';
 
 export default defineConfig({
-  site: 'https://astro-pwa.example.com',
+  site: 'https://9dfbe926.astropwa-54d.pages.dev',
   output: 'static',
   integrations: [
     tailwind(),
@@ -16,24 +16,31 @@ export default defineConfig({
         suppressWarnings: true
       },
       strategies: 'generateSW',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json,xml}']
+      },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,json,xml}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'pages-cache',
               expiration: { 
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30
-              }
+              },
+              networkTimeoutSeconds: 3
             }
           },
           {
-            urlPattern: /.*\.(?:png|jpg|jpeg|svg|gif|webp)/,
+            urlPattern: /.*\.(?:png|jpg|jpeg|svg|gif|webp|ico)/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'images-cache',
@@ -45,7 +52,7 @@ export default defineConfig({
           },
           {
             urlPattern: /.*\.(?:js|css)/,
-            handler: 'StaleWhileRevalidate',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'static-resources',
               expiration: {
@@ -53,26 +60,43 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24 * 30
               }
             }
+          },
+          {
+            urlPattern: /.*\.(?:json|xml)/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'data-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7
+              },
+              networkTimeoutSeconds: 3
+            }
           }
         ]
       },
       manifest: {
-        name: 'My Offline Astro PWA',
+        name: 'AstroPWA - Offline Blog',
         short_name: 'AstroPWA',
+        description: 'Fully offline-capable PWA blog built with Astro',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
+        orientation: 'portrait-primary',
         background_color: '#ffffff',
         theme_color: '#0f172a',
         icons: [
           {
             src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: '/pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }
