@@ -14,40 +14,49 @@ const {
 	<span>{label}</span>
 </button>
 <script is:inline>
-	/** @type {HTMLButtonElement | null} */
-	const button = document.currentScript?.previousElementSibling;
-	let deferredPrompt = null;
+	(function() {
+		/** @type {HTMLButtonElement | null} */
+		const button = document.currentScript?.previousElementSibling;
+		if (!button) return;
+		
+		let deferredPrompt = null;
 
-	const hideButton = () => {
-		button?.setAttribute('hidden', 'hidden');
-		button?.classList.remove('animate-pulse');
-	};
+		const hideButton = () => {
+			button.setAttribute('hidden', 'hidden');
+			button.classList.remove('animate-pulse');
+		};
 
-	const showButton = () => {
-		button?.removeAttribute('hidden');
-		button?.classList.add('animate-pulse');
-	};
+		const showButton = () => {
+			button.removeAttribute('hidden');
+			button.classList.add('animate-pulse');
+		};
 
-	window.addEventListener('beforeinstallprompt', (event) => {
-		event.preventDefault();
-		deferredPrompt = event;
-		showButton();
-	});
+		window.addEventListener('beforeinstallprompt', (event) => {
+			event.preventDefault();
+			deferredPrompt = event;
+			showButton();
+		});
 
-	button?.addEventListener('click', async () => {
-		if (!deferredPrompt) return;
-		button.disabled = true;
-		await deferredPrompt.prompt();
-		const { outcome } = await deferredPrompt.userChoice;
-		deferredPrompt = null;
-		button.disabled = false;
-		if (outcome === 'accepted') {
+		button.addEventListener('click', async () => {
+			if (!deferredPrompt) return;
+			button.disabled = true;
+			try {
+				await deferredPrompt.prompt();
+				const { outcome } = await deferredPrompt.userChoice;
+				deferredPrompt = null;
+				if (outcome === 'accepted') {
+					hideButton();
+				}
+			} catch (err) {
+				console.error('Install prompt error:', err);
+			} finally {
+				button.disabled = false;
+			}
+		});
+
+		window.addEventListener('appinstalled', () => {
+			deferredPrompt = null;
 			hideButton();
-		}
-	});
-
-	window.addEventListener('appinstalled', () => {
-		deferredPrompt = null;
-		hideButton();
-	});
+		});
+	})();
 </script>

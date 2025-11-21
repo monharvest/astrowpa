@@ -53,85 +53,118 @@ const steps = [
 	</div>
 </section>
 <script is:inline>
-	const root = document.currentScript?.parentElement;
-	if (!root) return;
-	const buttons = root.querySelectorAll('[data-platform-button]');
-	const iosButton = root.querySelector('[data-platform-button="ios"]');
-	const androidButton = root.querySelector('[data-platform-button="android"]');
-	const webButton = root.querySelector('[data-platform-button="web"]');
-	const iosPanel = root.querySelector('[data-ios-panel]');
-	const iosClose = root.querySelector('[data-ios-close]');
-	const toast = root.querySelector('[data-toast]');
-	const toastMessage = root.querySelector('[data-toast-message]');
-	let deferredPrompt = null;
+	(function() {
+		const root = document.currentScript?.parentElement;
+		if (!root) return;
+		
+		const buttons = root.querySelectorAll('[data-platform-button]');
+		const iosButton = root.querySelector('[data-platform-button="ios"]');
+		const androidButton = root.querySelector('[data-platform-button="android"]');
+		const webButton = root.querySelector('[data-platform-button="web"]');
+		const iosPanel = root.querySelector('[data-ios-panel]');
+		const iosClose = root.querySelector('[data-ios-close]');
+		const toast = root.querySelector('[data-toast]');
+		const toastMessage = root.querySelector('[data-toast-message]');
+		
+		let deferredPrompt = null;
 
-	const highlightPlatform = () => {
-		const ua = navigator.userAgent.toLowerCase();
-		let target = 'web';
-		if (/iphone|ipad|ipod/.test(ua)) target = 'ios';
-		else if (/android/.test(ua)) target = 'android';
-		buttons.forEach((button) => {
-			const value = button.getAttribute('data-platform-button');
-			button.classList.toggle('ring-2', value === target);
-			button.classList.toggle('ring-white/70', value === target);
+		const highlightPlatform = () => {
+			const ua = navigator.userAgent.toLowerCase();
+			let target = 'web';
+			if (/iphone|ipad|ipod/.test(ua)) {
+				target = 'ios';
+			} else if (/android/.test(ua)) {
+				target = 'android';
+			}
+			
+			buttons.forEach((button) => {
+				const value = button.getAttribute('data-platform-button');
+				if (value === target) {
+					button.classList.add('ring-2', 'ring-white/70');
+				} else {
+					button.classList.remove('ring-2', 'ring-white/70');
+				}
+			});
+		};
+
+		const showToast = (message, duration = 4000) => {
+			if (!toast || !toastMessage) return;
+			toastMessage.textContent = message;
+			toast.hidden = false;
+			setTimeout(() => {
+				toast.hidden = true;
+			}, duration);
+		};
+
+		window.addEventListener('beforeinstallprompt', (event) => {
+			event.preventDefault();
+			deferredPrompt = event;
+			showToast('Android install ready. Tap the Android button to continue.', 6000);
 		});
-	};
 
-	const showToast = (message, duration = 4000) => {
-		if (!toast || !toastMessage) return;
-		toastMessage.textContent = message;
-		toast.hidden = false;
-		setTimeout(() => {
-			toast.hidden = true;
-		}, duration);
-	};
-
-	window.addEventListener('beforeinstallprompt', (event) => {
-		event.preventDefault();
-		deferredPrompt = event;
-		showToast('Android install ready. Tap the Android button to continue.', 6000);
-	});
-
-	iosButton?.addEventListener('click', () => {
-		if (!iosPanel) return;
-		iosPanel.hidden = false;
-	});
-
-	iosClose?.addEventListener('click', () => {
-		if (iosPanel) iosPanel.hidden = true;
-	});
-
-	androidButton?.addEventListener('click', async () => {
-		if (!deferredPrompt) {
-			showToast('Open this site in Chrome or Edge on Android to install.');
-			return;
+		if (iosButton) {
+			iosButton.addEventListener('click', () => {
+				if (iosPanel) {
+					iosPanel.hidden = false;
+				}
+			});
 		}
-		androidButton.disabled = true;
-		await deferredPrompt.prompt();
-		const { outcome } = await deferredPrompt.userChoice;
-		androidButton.disabled = false;
-		if (outcome === 'accepted') {
-			showToast('Awesome! Check your home screen for the new icon.', 5000);
-			deferredPrompt = null;
-		} else {
-			showToast('No worries. You can install any time from this button.');
+
+		if (iosClose) {
+			iosClose.addEventListener('click', () => {
+				if (iosPanel) {
+					iosPanel.hidden = true;
+				}
+			});
 		}
-	});
 
-	webButton?.addEventListener('click', async () => {
-		try {
-			await navigator.clipboard?.writeText(window.location.href);
-			showToast('Link copied. Open it in any browser or Web3 wallet.');
-		} catch (_error) {
-			showToast('Stay in the browser for the full experience—no install needed.');
+		if (androidButton) {
+			androidButton.addEventListener('click', async () => {
+				if (!deferredPrompt) {
+					showToast('Open this site in Chrome or Edge on Android to install.');
+					return;
+				}
+				androidButton.disabled = true;
+				try {
+					await deferredPrompt.prompt();
+					const { outcome } = await deferredPrompt.userChoice;
+					if (outcome === 'accepted') {
+						showToast('Awesome! Check your home screen for the new icon.', 5000);
+						deferredPrompt = null;
+					} else {
+						showToast('No worries. You can install any time from this button.');
+					}
+				} catch (err) {
+					showToast('Installation not available on this browser.');
+				} finally {
+					androidButton.disabled = false;
+				}
+			});
 		}
-	});
 
-	document.addEventListener('click', (event) => {
-		if (!iosPanel || iosPanel.hidden) return;
-		if (event.target === iosPanel || iosPanel.contains(event.target)) return;
-		iosPanel.hidden = true;
-	});
+		if (webButton) {
+			webButton.addEventListener('click', async () => {
+				try {
+					if (navigator.clipboard && navigator.clipboard.writeText) {
+						await navigator.clipboard.writeText(window.location.href);
+						showToast('Link copied. Open it in any browser or Web3 wallet.');
+					} else {
+						showToast('Stay in the browser for the full experience—no install needed.');
+					}
+				} catch (_error) {
+					showToast('Stay in the browser for the full experience—no install needed.');
+				}
+			});
+		}
 
-	highlightPlatform();
+		document.addEventListener('click', (event) => {
+			if (!iosPanel || iosPanel.hidden) return;
+			const target = event.target;
+			if (target === iosPanel || iosPanel.contains(target)) return;
+			if (target === iosButton || iosButton.contains(target)) return;
+			iosPanel.hidden = true;
+		});
+
+		highlightPlatform();
+	})();
 </script>
